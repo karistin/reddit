@@ -1,0 +1,17 @@
+###### Database Properties  ###########################################
+spring.datasource
+  driver-class-name=com.mysql.cj.jdbc.Driver
+  url=jdbc:mysql://localhost:3306/spring-reddit-clone
+  username=user
+  password=admin
+  initialize=true
+spring.jpa
+  hibernate.ddl-auto=update
+  show-sql=true
+############## Mail Properties ###########################################
+#spring.mail
+#  host=smtp.mailtrap.io
+#  port=25
+#  username=<your-username>
+#  password=<your-password>
+#  protocol=smtp
