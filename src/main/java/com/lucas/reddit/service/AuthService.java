@@ -2,6 +2,8 @@ package com.lucas.reddit.service;
 
 import static com.lucas.reddit.util.Constants.ACTIVATION_EMAIL;
 
+import com.lucas.reddit.config.SecurityConfig;
+import com.lucas.reddit.dto.AuthenticationResponse;
 import com.lucas.reddit.dto.LoginRequest;
 import com.lucas.reddit.dto.RegisterRequest;
 import com.lucas.reddit.exception.SpringRedditException;
@@ -10,14 +12,18 @@ import com.lucas.reddit.model.User;
 import com.lucas.reddit.model.VerificationToken;
 import com.lucas.reddit.repository.UserRepository;
 import com.lucas.reddit.repository.VerificationTokenRepository;
+import com.lucas.reddit.security.JwtProvider;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -28,11 +34,13 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtProvider jwtProvider;
     private final MailService mailService;
     private final VerificationTokenRepository verificationTokenRepository;
     private final AuthenticationManager authenticationManager;
+//    AuthenticationProvider : 실제 인증 로직이 있는 객체
 
-    @Transactional
+//    @Transactional
     public void signup(RegisterRequest registerRequest) {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
@@ -70,17 +78,28 @@ public class AuthService {
         fetchUserAndEnable(verificationToken.get());
     }
 
-    @Transactional
+//    @Transactional
     private void fetchUserAndEnable(VerificationToken verificationToken) {
         String username = verificationToken.getUser().getUsername();
+//        long userId = verificationToken.getUser().getUserId();
+
         User user = userRepository.findByUsername(username).orElseThrow(() ->
             new SpringRedditException("User not found with name - " + username));
 
         userRepository.save(user);
     }
 
-    public void login(LoginRequest loginRequest) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-            loginRequest.getUsername(), loginRequest.getPassword()));
+    public AuthenticationResponse login(LoginRequest loginRequest) {
+//        인증 되지 않은 사용자 UsernamePasswordAuthenticationToken
+//        setAuthenticated(false);
+        System.out.println("authenticationManager : " + authenticationManager);
+        Authentication authenticate = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginRequest.getUsername(), loginRequest.getPassword()));
+        System.out.println(authenticate.getName());
+        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        String token = jwtProvider.generateToken(authenticate);
+        log.info("Token :" + token);
+        return new AuthenticationResponse(token, loginRequest.getUsername());
     }
 }
