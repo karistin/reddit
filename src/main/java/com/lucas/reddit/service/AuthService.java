@@ -40,7 +40,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 //    AuthenticationProvider : 실제 인증 로직이 있는 객체
 
-//    @Transactional
+    @Transactional
     public void signup(RegisterRequest registerRequest) {
         User user = new User();
         user.setUsername(registerRequest.getUsername());
@@ -78,7 +78,7 @@ public class AuthService {
         fetchUserAndEnable(verificationToken.get());
     }
 
-//    @Transactional
+    @Transactional
     private void fetchUserAndEnable(VerificationToken verificationToken) {
         String username = verificationToken.getUser().getUsername();
 //        long userId = verificationToken.getUser().getUserId();
@@ -90,13 +90,12 @@ public class AuthService {
     }
 
     public AuthenticationResponse login(LoginRequest loginRequest) {
-//        인증 되지 않은 사용자 UsernamePasswordAuthenticationToken
-//        setAuthenticated(false);
+
         System.out.println("authenticationManager : " + authenticationManager);
         Authentication authenticate = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 loginRequest.getUsername(), loginRequest.getPassword()));
-        System.out.println(authenticate.getName());
+
         SecurityContextHolder.getContext().setAuthentication(authenticate);
         String token = jwtProvider.generateToken(authenticate);
         log.info("Token :" + token);

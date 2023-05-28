@@ -26,7 +26,7 @@ public class UserDetailServiceImpl implements UserDetailsService {
         Optional<User> userOptional = userRepository.findByUsername(username);
         User user = userOptional.orElseThrow(() -> new UsernameNotFoundException("Not User "
             + "Found with Username " + username));
-        System.out.println("유저 확인 완료 :" + user.getUsername());
+
         return org.springframework.security.core.userdetails.User.builder().username(user.getUsername())
             .password(user.getPassword())
             .accountExpired(true)
